@@ -1,16 +1,22 @@
 import os
 import xml.etree.ElementTree as et
 import nltk
+import Sastrawi
 
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
 en_stop_words = set(stopwords.words('english'))
+
+
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+factory = StopWordRemoverFactory()
+#ind_stop_words = factory.get_stop_words()
+ind_stop_word_remover = factory.create_stop_word_remover()
 
 base_path = os.path.dirname(os.path.realpath(__file__))
 #print(base_path)  print current directory address
 
-xml_file = os.path.join(base_path, "validation_set.xml")
+xml_file = os.path.join(base_path, "training_set.xml")
 #print(xml_file) 
 
 tree = et.parse(xml_file)
@@ -35,11 +41,15 @@ for reviewElement in root:
                    newSentenceEl.text = reviewTextContent[sentenceNumber].strip()
                    newProcSentenceEl = et.SubElement(newSentencesEl,'cleansentence',attrib={"id":str(attrNum)})
                    word_tokens = word_tokenize(reviewTextContent[sentenceNumber].strip())
-                   newProcSentenceEl.text = filtered_sentence = [w for w in word_tokens if not w in en_stop_words]
+                   filtered_sentence = [w for w in word_tokens if not w in en_stop_words]
                    attrNum = attrNum + 1
-                   print(filtered_sentence)
-                   print (reviewTextContent[sentenceNumber].strip())
-                   print(newSentenceEl.tag,newSentenceEl.attrib,newSentenceEl.text)
-                    
-
-#tree.write("validation_set_SentenceCleaned.xml")
+                   #print(reviewTextContent[sentenceNumber].strip())
+                   #print(newSentenceEl.tag,newSentenceEl.attrib,newSentenceEl.text)
+                   filtered_sentence_result = ""
+                   for w in filtered_sentence:
+                      filtered_sentence_result = filtered_sentence_result + w + " "
+                   filtered_sentence_result2 = filtered_sentence_result[:(len(filtered_sentence_result)-1)]
+                   newProcSentenceEl.text = ind_stop_word_remover.remove(filtered_sentence_result2)
+                   #print(newProcSentenceEl.tag,newProcSentenceEl.attrib,newProcSentenceEl.text)
+				   
+tree.write("training_set_SentenceCleaned.xml")
